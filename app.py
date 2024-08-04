@@ -8,7 +8,7 @@ from sklearn.neighbors import KNeighborsRegressor
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LinearRegression
 
-# Streamlit app configuration
+# Streamlit app
 st.set_page_config(page_title="Agriculture Prediction", layout="wide", page_icon="🌾")
 
 # Add a background image
@@ -136,7 +136,7 @@ price_model = LinearRegression()
 price_model.fit(price_X_train, price_y_train)
 
 # Fertilizer Recommendation
-fertilizer_data = pd.read_csv('https://raw.githubusercontent.com/dheerajreddy71/Design_Project/main/fertilizer_recommendation.csv', encoding='utf-8')
+fertilizer_data = pd.read_csv('https://github.com/dheerajreddy71/Design_Project/raw/main/fertilizer_recommendation.csv', encoding='ISO-8859-1')
 fertilizer_data.rename(columns={'Humidity ':'Humidity','Soil Type':'Soil_Type','Crop Type':'Crop_Type','Fertilizer Name':'Fertilizer'}, inplace=True)
 fertilizer_data.dropna(inplace=True)
 
@@ -159,12 +159,12 @@ rand.fit(x_train, y_train)
 
 # Yield Prediction
 st.header("Predict Crop Yield")
-year = st.number_input("Year", min_value=2000, max_value=2100, value=2024)
-rainfall = st.number_input("Average Rainfall (mm per year)")
-pesticides = st.number_input("Pesticides Used (tonnes)")
-temp = st.number_input("Average Temperature (°C)")
-area = st.text_input("Area")
-item = st.text_input("Item")
+year = st.number_input("Year for Yield Prediction", min_value=2000, max_value=2100, value=2024)
+rainfall = st.number_input("Average Rainfall (mm per year) for Yield Prediction")
+pesticides = st.number_input("Pesticides Used (tonnes) for Yield Prediction")
+temp = st.number_input("Average Temperature (°C) for Yield Prediction")
+area = st.text_input("Area for Yield Prediction")
+item = st.text_input("Item for Yield Prediction")
 
 if st.button("Predict Yield"):
     features = {
@@ -184,94 +184,40 @@ if st.button("Predict Yield"):
 
 # Crop Recommendation
 st.header("Recommend Crops")
-N = st.number_input("Nitrogen (N) content in soil")
-P = st.number_input("Phosphorus (P) content in soil")
-K = st.number_input("Potassium (K) content in soil")
-temperature = st.number_input("Temperature (°C)")
-humidity = st.number_input("Humidity (%)")
-ph = st.number_input("pH value of the soil")
-rainfall = st.number_input("Rainfall (mm)")
+N = st.number_input("Nitrogen (N) for Crop Recommendation", min_value=0.0, max_value=100.0, step=0.1)
+P = st.number_input("Phosphorus (P) for Crop Recommendation", min_value=0.0, max_value=100.0, step=0.1)
+K = st.number_input("Potassium (K) for Crop Recommendation", min_value=0.0, max_value=100.0, step=0.1)
+temperature = st.number_input("Temperature (°C) for Crop Recommendation")
+humidity = st.number_input("Humidity (%) for Crop Recommendation")
+ph = st.number_input("pH for Crop Recommendation")
+rainfall = st.number_input("Rainfall (mm) for Crop Recommendation")
 
 if st.button("Recommend Crop"):
-    features = [[N, P, K, temperature, humidity, ph, rainfall]]
-    recommended_crop = crop_model.predict(features)[0]
+    crop_features = np.array([[N, P, K, temperature, humidity, ph, rainfall]])
+    recommended_crop = crop_model.predict(crop_features)[0]
     st.success(f"The recommended crop is {recommended_crop}.")
 
-# Crop Requirements and Pest Warnings
-st.header("Crop Requirements and Pest Warnings")
-crop_name = st.text_input("Enter crop name")
-
-if st.button("Predict Crop Requirements"):
-    if crop_name:
-        humidity_required, predicted_temperature = predict_requirements(crop_name)
-        if humidity_required and predicted_temperature:
-            st.success(f"Humidity required for {crop_name}: {humidity_required} %")
-            st.success(f"Predicted temperature required for {crop_name}: {predicted_temperature:.2f} °F")
-        else:
-            st.error(f"Crop {crop_name} not found in the dataset.")
-
-if st.button("Predict Pest Warnings"):
-    if crop_name:
-        warnings = predict_pest_warnings(crop_name)
-        if warnings:
-            st.success(warnings)
-        else:
-            st.error(f"No pest warnings found for crop {crop_name}.")
+# Pest Warnings
+st.header("Pest Warnings and Crop Information")
+crop_name = st.text_input("Enter Crop Name for Pest Warnings")
+if st.button("Get Pest Warnings"):
+    warnings = predict_pest_warnings(crop_name)
+    if warnings:
+        st.write(warnings)
+    else:
+        st.write("Crop not found or no information available.")
 
 # Crop Price Prediction
-st.header("Predict Crop Price")
-state = st.text_input("State")
-district = st.text_input("District")
-market = st.text_input("Market")
-commodity = st.text_input("Commodity")
-variety = st.text_input("Variety")
-min_temp = st.number_input("Min Temperature (°C)")
-max_temp = st.number_input("Max Temperature (°C)")
-rainfall = st.number_input("Rainfall (mm)")
-day = st.number_input("Day")
-month = st.number_input("Month")
-year = st.number_input("Year")
+st.header("Predict Crop Prices")
+state = st.text_input("State for Price Prediction")
+district = st.text_input("District for Price Prediction")
+market = st.text_input("Market for Price Prediction")
+commodity = st.text_input("Commodity for Price Prediction")
+variety = st.text_input("Variety for Price Prediction")
+arrival_date = st.date_input("Arrival Date for Price Prediction")
 
-if st.button("Predict Price"):
-    input_data = pd.DataFrame({
-        'state': [state],
-        'district': [district],
-        'market': [market],
-        'commodity': [commodity],
-        'variety': [variety],
-        'min_temp': [min_temp],
-        'max_temp': [max_temp],
-        'rainfall': [rainfall],
-        'day': [day],
-        'month': [month],
-        'year': [year]
-    })
-    input_data_encoded = price_encoder.transform(input_data)
-    predicted_prices = price_model.predict(input_data_encoded)
-    min_price, max_price, modal_price = predicted_prices[0]
-    st.success(f"Predicted Minimum Price: {min_price:.2f}")
-    st.success(f"Predicted Maximum Price: {max_price:.2f}")
-    st.success(f"Predicted Modal Price: {modal_price:.2f}")
-
-# Fertilizer Recommendation
-st.header("Recommend Fertilizer")
-soil_type = st.selectbox("Soil Type", encode_soil.classes_)
-crop_type = st.selectbox("Crop Type", encode_crop.classes_)
-temperature = st.number_input("Temperature (°C)")
-humidity = st.number_input("Humidity (%)")
-moisture = st.number_input("Moisture (%)")
-
-if st.button("Recommend Fertilizer"):
-    soil_type_encoded = encode_soil.transform([soil_type])[0]
-    crop_type_encoded = encode_crop.transform([crop_type])[0]
-    input_data = pd.DataFrame({
-        'Temperature': [temperature],
-        'Humidity': [humidity],
-        'Moisture': [moisture],
-        'Soil_Type': [soil_type_encoded],
-        'Crop_Type': [crop_type_encoded]
-    })
-    predicted_fertilizer = rand.predict(input_data)[0]
-    fertilizer_name = encode_ferti.inverse_transform([predicted_fertilizer])[0]
-    st.success(f"The recommended fertilizer is {fertilizer_name}.")
-
+if st.button("Predict Prices"):
+    price_features = np.array([[state, district, market, commodity, variety, arrival_date.day, arrival_date.month, arrival_date.year]])
+    price_features_encoded = price_encoder.transform(price_features)
+    predicted_prices = price_model.predict(price_features_encoded)
+    st.success(f"Predicted prices: Min: {predicted_prices[0][0]}, Max: {predicted_prices[0][1]}, Modal: {predicted_prices[0][2]}")
