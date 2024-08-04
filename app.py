@@ -197,6 +197,19 @@ if st.button("Recommend Crop"):
     recommended_crop = crop_model.predict(crop_features)[0]
     st.success(f"The recommended crop is {recommended_crop}.")
 
+# Fertilizer Recommendation
+st.header("Fertilizer Recommendation")
+soil_type = st.selectbox("Soil Type", options=encode_soil.classes_)
+crop_type = st.selectbox("Crop Type", options=encode_crop.classes_)
+
+if st.button("Recommend Fertilizer"):
+    soil_type_encoded = encode_soil.transform([soil_type])[0]
+    crop_type_encoded = encode_crop.transform([crop_type])[0]
+    features = np.array([[soil_type_encoded, crop_type_encoded]])
+    recommended_fertilizer_encoded = rand.predict(features)[0]
+    recommended_fertilizer = encode_ferti.inverse_transform([recommended_fertilizer_encoded])[0]
+    st.success(f"The recommended fertilizer is {recommended_fertilizer}.")
+
 # Pest Warnings
 st.header("Pest Warnings and Crop Information")
 crop_name = st.text_input("Enter Crop Name for Pest Warnings")
