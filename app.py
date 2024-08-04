@@ -120,7 +120,7 @@ price_model = LinearRegression()
 price_model.fit(price_X_train, price_y_train)
 
 # Streamlit app
-st.set_page_config(page_title="Agriculture Prediction", layout="wide", page_icon="🌾")
+st.set_page_config(page_title="Smart Agri Assistant", layout="wide", page_icon="🌾")
 
 # Add a background image
 page_bg_img = '''
