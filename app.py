@@ -159,12 +159,12 @@ rand.fit(x_train, y_train)
 
 # Yield Prediction
 st.header("Predict Crop Yield")
-year = st.number_input("Year for Yield Prediction", min_value=2000, max_value=2100, value=2024)
-rainfall = st.number_input("Average Rainfall (mm per year) for Yield Prediction")
-pesticides = st.number_input("Pesticides Used (tonnes) for Yield Prediction")
-temp = st.number_input("Average Temperature (°C) for Yield Prediction")
-area = st.text_input("Area for Yield Prediction")
-item = st.text_input("Item for Yield Prediction")
+year = st.number_input("Year", min_value=2000, max_value=2100, value=2024)
+rainfall = st.number_input("Average Rainfall (mm per year)")
+pesticides = st.number_input("Pesticides Used (tonnes)")
+temp = st.number_input("Average Temperature (°C)")
+area = st.text_input("Area")
+item = st.text_input("Item")
 
 if st.button("Predict Yield"):
     features = {
@@ -183,7 +183,7 @@ if st.button("Predict Yield"):
     st.success(f"The predicted yield is {predicted_yield[0][0]:.2f} hectograms (hg) per hectare (ha).")
 
 # Crop Recommendation
-st.header("Crop Recommendation")
+st.header("Recommend Crops")
 N = st.number_input("Nitrogen content (N) in soil", min_value=0, max_value=100, value=0)
 P = st.number_input("Phosphorus content (P) in soil", min_value=0, max_value=100, value=0)
 K = st.number_input("Potassium content (K) in soil", min_value=0, max_value=100, value=0)
