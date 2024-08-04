@@ -144,8 +144,8 @@ year = st.number_input("Year", min_value=2000, max_value=2100, value=2024)
 rainfall = st.number_input("Average Rainfall (mm per year)")
 pesticides = st.number_input("Pesticides Used (tonnes)")
 temp = st.number_input("Average Temperature (°C)")
-area = st.text_input("Area")
-item = st.text_input("Item")
+area = st.text_input("Area(Country)")
+item = st.text_input("Item(Crop Name)")
 
 if st.button("Predict Yield"):
     features = {
