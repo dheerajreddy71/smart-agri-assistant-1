@@ -119,9 +119,6 @@ price_X_train, price_X_test, price_y_train, price_y_test = train_test_split(pric
 price_model = LinearRegression()
 price_model.fit(price_X_train, price_y_train)
 
-Here is the updated code snippet with your image URL:
-
-```python
 # Streamlit app
 st.set_page_config(page_title="Agriculture Prediction", layout="wide", page_icon="🌾")
 
@@ -137,6 +134,9 @@ background-size: cover;
 st.markdown(page_bg_img, unsafe_allow_html=True)
 
 st.title("Smart Agri Assistant")
+
+
+
 ```
 
 # Yield Prediction
