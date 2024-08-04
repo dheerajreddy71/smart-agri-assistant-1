@@ -137,7 +137,6 @@ st.title("Smart Agri Assistant")
 
 
 
-```
 
 # Yield Prediction
 st.header("Predict Crop Yield")
