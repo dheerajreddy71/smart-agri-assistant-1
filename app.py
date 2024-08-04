@@ -136,7 +136,7 @@ price_model = LinearRegression()
 price_model.fit(price_X_train, price_y_train)
 
 # Fertilizer Recommendation
-fertilizer_data = pd.read_csv('C:/Users/Windows/Downloads/fertilizer_recommendation.csv')
+fertilizer_data = pd.read_csv('https://github.com/dheerajreddy71/Design_Project/blob/main/fertilizer_recommendation.csv', encoding='ISO-8859-1')
 fertilizer_data.rename(columns={'Humidity ':'Humidity','Soil Type':'Soil_Type','Crop Type':'Crop_Type','Fertilizer Name':'Fertilizer'}, inplace=True)
 fertilizer_data.dropna(inplace=True)
 
