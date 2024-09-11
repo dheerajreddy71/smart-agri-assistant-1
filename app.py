@@ -142,7 +142,7 @@ background-size: cover;
 st.markdown(page_bg_img, unsafe_allow_html=True)
 
 # Language selection
-selected_language = st.selectbox("Select Language", options=['en', 'hi'], format_func=lambda x: {"en": "English", "hi": "Hindi"}[x])
+selected_language = st.selectbox("Select Language", options=['en', 'hi','ta','te'], format_func=lambda x: {'English': 'en', 'Hindi': 'hi', 'Tamil': 'ta', 'Telugu': 'te'}[x])
 
 # Translating static text based on selected language
 st.title(translate_text("Smart Agri Assistant", selected_language))
