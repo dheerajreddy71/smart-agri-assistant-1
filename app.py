@@ -135,19 +135,16 @@ st.markdown(page_bg_img, unsafe_allow_html=True)
 
 st.title("Smart Agri Assistant")
 
-
-
-
 # Yield Prediction
 st.header("Predict Crop Yield")
-year = st.number_input("Year", min_value=2000, max_value=2100, value=2024)
-rainfall = st.number_input("Average Rainfall (mm per year)")
-pesticides = st.number_input("Pesticides Used (tonnes)")
-temp = st.number_input("Average Temperature (°C)")
-area = st.text_input("Area(Country)")
-item = st.text_input("Item(Crop Name)")
+year = st.number_input("Year", min_value=2000, max_value=2100, value=2024, key="year_input")
+rainfall = st.number_input("Average Rainfall (mm per year)", key="rainfall_input")
+pesticides = st.number_input("Pesticides Used (tonnes)", key="pesticides_input")
+temp = st.number_input("Average Temperature (°C)", key="temp_input")
+area = st.text_input("Area (Country)", key="area_input")
+item = st.text_input("Item (Crop Name)", key="item_input")
 
-if st.button("Predict Yield"):
+if st.button("Predict Yield", key="predict_yield_button"):
     features = {
         'Year': year,
         'average_rain_fall_mm_per_year': rainfall,
@@ -165,62 +162,49 @@ if st.button("Predict Yield"):
 
 # Crop Recommendation
 st.header("Recommend Crops")
-N = st.number_input("Nitrogen (N)", min_value=0.0)
-P = st.number_input("Phosphorus (P)", min_value=0.0)
-K = st.number_input("Potassium (K)", min_value=0.0)
-temperature = st.number_input("Temperature (°C)", min_value=0.0)
-humidity = st.number_input("Humidity (%)", min_value=0.0)
-ph = st.number_input("Soil pH", min_value=0.0)
-rainfall = st.number_input("Rainfall (mm)", min_value=0.0)
+N = st.number_input("Nitrogen (N)", min_value=0.0, key="N_input")
+P = st.number_input("Phosphorus (P)", min_value=0.0, key="P_input")
+K = st.number_input("Potassium (K)", min_value=0.0, key="K_input")
+temperature = st.number_input("Temperature (°C)", min_value=0.0, key="temperature_input")
+humidity = st.number_input("Humidity (%)", min_value=0.0, key="humidity_input")
+ph = st.number_input("Soil pH", min_value=0.0, key="ph_input")
+rainfall = st.number_input("Rainfall (mm)", min_value=0.0, key="rainfall_input")
 
-if st.button("Recommend Crop"):
+if st.button("Recommend Crop", key="recommend_crop_button"):
     crop_features = [N, P, K, temperature, humidity, ph, rainfall]
     recommended_crop = crop_model.predict([crop_features])[0]
     st.success(f"Recommended Crop: {recommended_crop}")
 
 # Crop Requirements and Pest Warnings
 st.header("Predict Crop Requirements and Pest Warnings")
-crop_name = st.text_input("Crop Name")
+crop_name = st.text_input("Crop Name", key="crop_name_input")
 
-if st.button("Calculate"):
-    humidity, temperature = predict_requirements(crop_name)
-    pest_warning = predict_pest_warnings(crop_name)
-    if humidity is not None and temperature is not None:
-        st.info(f"Humidity Required: {humidity}%")
-        st.info(f"Temperature Required: {temperature:.2f}°F")
+if st.button("Predict Requirements", key="predict_requirements_button"):
+    humidity_required, predicted_temperature = predict_requirements(crop_name)
+    pest_warnings = predict_pest_warnings(crop_name)
+
+    if humidity_required is not None:
+        st.success(f"Humidity Required for {crop_name}: {humidity_required}%")
+        st.success(f"Predicted Temperature Required for {crop_name}: {predicted_temperature:.2f}°F")
+        st.info(pest_warnings)
     else:
-        st.warning("Crop not found.")
-    st.info(f"Pest Warnings: {pest_warning}")
+        st.error("No data found for the specified crop.")
 
-# Crop Price Prediction
+# Price Prediction
 st.header("Predict Crop Prices")
-state = st.text_input("State")
-district = st.text_input("District")
-market = st.text_input("Market")
-commodity = st.text_input("Commodity")
-variety = st.text_input("Variety")
-arrival_date = st.date_input("Arrival Date")
+state = st.text_input("State", key="state_input")
+district = st.text_input("District", key="district_input")
+market = st.text_input("Market", key="market_input")
+commodity = st.text_input("Commodity", key="commodity_input")
+variety = st.text_input("Variety", key="variety_input")
+day = st.number_input("Day", min_value=1, max_value=31, value=1, key="day_input")
+month = st.number_input("Month", min_value=1, max_value=12, value=1, key="month_input")
+year = st.number_input("Year", min_value=2000, max_value=2100, value=2024, key="price_year_input")
 
-if st.button("Predict Prices"):
-    if not all([state, district, market, commodity, variety, arrival_date]):
-        st.error("Please provide all inputs.")
-    else:
-        input_data = {
-            'state': state,
-            'district': district,
-            'market': market,
-            'commodity': commodity,
-            'variety': variety,
-            'arrival_date': pd.to_datetime(arrival_date)
-        }
-
-        input_df = pd.DataFrame([input_data])
-        input_df['day'] = input_df['arrival_date'].dt.day
-        input_df['month'] = input_df['arrival_date'].dt.month
-        input_df['year'] = input_df['arrival_date'].dt.year
-        input_df.drop(['arrival_date'], axis=1, inplace=True)
-        input_encoded = price_encoder.transform(input_df)
-
-        predicted_prices = price_model.predict(input_encoded)
-        min_price, max_price, modal_price = predicted_prices[0]
-        st.success(f"Predicted Prices - Min: {min_price}, Max: {max_price}, Modal: {modal_price}")
+if st.button("Predict Price", key="predict_price_button"):
+    price_features = [[state, district, market, commodity, variety, day, month, year]]
+    price_features_encoded = price_encoder.transform(price_features)
+    predicted_price = price_model.predict(price_features_encoded)
+    st.success(f"Min Price: ₹{predicted_price[0][0]:.2f}")
+    st.success(f"Max Price: ₹{predicted_price[0][1]:.2f}")
+    st.success(f"Modal Price: ₹{predicted_price[0][2]:.2f}")
