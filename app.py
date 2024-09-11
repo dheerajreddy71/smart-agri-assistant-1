@@ -7,21 +7,8 @@ from sklearn.compose import ColumnTransformer
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LinearRegression
-from googletrans import Translator
 
-# Initialize the translator
-translator = Translator()
-
-# Function to translate text
-def translate_text(text, lang):
-    try:
-        translation = translator.translate(text, dest=lang)
-        return translation.text
-    except Exception as e:
-        st.error(f"Translation error: {e}")
-        return text
-
-# Load and prepare datasets
+# Load and prepare datasets for yield prediction
 yield_df = pd.read_csv("https://github.com/dheerajreddy71/Design_Project/raw/main/yield_df.csv")
 crop_recommendation_data = pd.read_csv("https://github.com/dheerajreddy71/Design_Project/raw/main/Crop_recommendation.csv")
 
@@ -46,6 +33,7 @@ crop_X_train, crop_X_test, crop_y_train, crop_y_test = train_test_split(crop_X, 
 crop_model = RandomForestClassifier(n_estimators=100, random_state=42)
 crop_model.fit(crop_X_train, crop_y_train)
 
+# Load crop data and train the model for temperature prediction
 data = pd.read_csv("https://github.com/dheerajreddy71/Design_Project/raw/main/ds1.csv", encoding='ISO-8859-1')
 data = data.drop(['Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7'], axis=1)
 X = data.drop(['Crop', 'Temperature Required (°F)'], axis=1)
@@ -53,21 +41,24 @@ y = data['Temperature Required (°F)']
 model = LinearRegression()
 model.fit(X, y)
 
+# Function to predict temperature and humidity requirements for a crop
 def predict_requirements(crop_name):
     crop_name = crop_name.lower()
     crop_data = data[data['Crop'].str.lower() == crop_name].drop(['Crop', 'Temperature Required (°F)'], axis=1)
     if crop_data.empty:
-        return None, None
+        return None, None  # Handle cases where crop_name is not found
     predicted_temperature = model.predict(crop_data)
     crop_row = data[data['Crop'].str.lower() == crop_name]
     humidity_required = crop_row['Humidity Required (%)'].values[0]
     return humidity_required, predicted_temperature[0]
 
+# Function to get pest warnings for a crop
 crop_pest_data = {}
 planting_time_info = {}
 growth_stage_info = {}
 pesticides_info = {}
 
+# Read data from the CSV file and store it in dictionaries
 pest_data = pd.read_csv("https://github.com/dheerajreddy71/Design_Project/raw/main/ds2.csv")
 for _, row in pest_data.iterrows():
     crop = row[0].strip().lower()
@@ -104,6 +95,7 @@ def predict_pest_warnings(crop_name):
 
     return '\n'.join(pest_warnings)
 
+# Load and preprocess crop price data
 price_data = pd.read_csv('https://github.com/dheerajreddy71/Design_Project/raw/main/pred_data.csv', encoding='ISO-8859-1')
 price_data['arrival_date'] = pd.to_datetime(price_data['arrival_date'])
 price_data['day'] = price_data['arrival_date'].dt.day
@@ -128,7 +120,7 @@ price_model = LinearRegression()
 price_model.fit(price_X_train, price_y_train)
 
 # Streamlit app
-st.set_page_config(page_title=translate_text("Smart Agri Assistant", "en"), layout="wide", page_icon="🌾")
+st.set_page_config(page_title="Smart Agri Assistant", layout="wide", page_icon="🌾")
 
 # Add a background image
 page_bg_img = '''
@@ -141,22 +133,21 @@ background-size: cover;
 '''
 st.markdown(page_bg_img, unsafe_allow_html=True)
 
-# Language selection
-selected_language = st.selectbox("Select Language", options=['en', 'hi','ta','te'], format_func=lambda x: {'English': 'en', 'Hindi': 'hi', 'Tamil': 'ta', 'Telugu': 'te'}[x])
+st.title("Smart Agri Assistant")
 
-# Translating static text based on selected language
-st.title(translate_text("Smart Agri Assistant", selected_language))
+
+
 
 # Yield Prediction
-st.header(translate_text("Predict Crop Yield", selected_language))
-year = st.number_input(translate_text("Year", selected_language), min_value=2000, max_value=2100, value=2024)
-rainfall = st.number_input(translate_text("Average Rainfall (mm per year)", selected_language))
-pesticides = st.number_input(translate_text("Pesticides Used (tonnes)", selected_language))
-temp = st.number_input(translate_text("Average Temperature (°C)", selected_language))
-area = st.text_input(translate_text("Area (Country)", selected_language))
-item = st.text_input(translate_text("Item (Crop Name)", selected_language))
+st.header("Predict Crop Yield")
+year = st.number_input("Year", min_value=2000, max_value=2100, value=2024)
+rainfall = st.number_input("Average Rainfall (mm per year)")
+pesticides = st.number_input("Pesticides Used (tonnes)")
+temp = st.number_input("Average Temperature (°C)")
+area = st.text_input("Area(Country)")
+item = st.text_input("Item(Crop Name)")
 
-if st.button(translate_text("Predict Yield", selected_language)):
+if st.button("Predict Yield"):
     features = {
         'Year': year,
         'average_rain_fall_mm_per_year': rainfall,
@@ -170,49 +161,66 @@ if st.button(translate_text("Predict Yield", selected_language)):
                                 features['Area'], features['Item']]], dtype=object)
     transformed_features = yield_preprocessor.transform(features_array)
     predicted_yield = yield_model.predict(transformed_features).reshape(1, -1)
-    st.success(translate_text("The predicted yield is {:.2f} hectograms (hg) per hectare (ha).", selected_language).format(predicted_yield[0][0]))
+    st.success(f"The predicted yield is {predicted_yield[0][0]:.2f} hectograms (hg) per hectare (ha).")
 
 # Crop Recommendation
-st.header(translate_text("Recommend Crops", selected_language))
-N = st.number_input(translate_text("Nitrogen (N)", selected_language))
-P = st.number_input(translate_text("Phosphorus (P)", selected_language))
-K = st.number_input(translate_text("Potassium (K)", selected_language))
-temperature = st.number_input(translate_text("Temperature (°C)", selected_language))
-humidity = st.number_input(translate_text("Humidity (%)", selected_language))
-ph = st.number_input(translate_text("Soil pH", selected_language))
-rainfall_input = st.number_input(translate_text("Rainfall (mm)", selected_language))
+st.header("Recommend Crops")
+N = st.number_input("Nitrogen (N)", min_value=0.0)
+P = st.number_input("Phosphorus (P)", min_value=0.0)
+K = st.number_input("Potassium (K)", min_value=0.0)
+temperature = st.number_input("Temperature (°C)", min_value=0.0)
+humidity = st.number_input("Humidity (%)", min_value=0.0)
+ph = st.number_input("Soil pH", min_value=0.0)
+rainfall = st.number_input("Rainfall (mm)", min_value=0.0)
 
-if st.button(translate_text("Recommend Crop", selected_language)):
-    crop_features = np.array([[N, P, K, temperature, humidity, ph, rainfall_input]])
-    recommended_crop = crop_model.predict(crop_features)
-    st.success(translate_text("Recommended Crop: {}", selected_language).format(recommended_crop[0]))
+if st.button("Recommend Crop"):
+    crop_features = [N, P, K, temperature, humidity, ph, rainfall]
+    recommended_crop = crop_model.predict([crop_features])[0]
+    st.success(f"Recommended Crop: {recommended_crop}")
 
-# Pest Warnings
-st.header(translate_text("Predict Crop Requirements and Pest Warnings", selected_language))
-crop_name = st.text_input(translate_text("Crop Name", selected_language))
+# Crop Requirements and Pest Warnings
+st.header("Predict Crop Requirements and Pest Warnings")
+crop_name = st.text_input("Crop Name")
 
-if st.button(translate_text("Predict Requirements", selected_language)):
-    humidity_required, predicted_temperature = predict_requirements(crop_name)
-    if humidity_required is not None:
-        st.write(translate_text("Required Humidity: {:.2f}%", selected_language).format(humidity_required))
-        st.write(translate_text("Predicted Temperature: {:.2f}°C", selected_language).format(predicted_temperature))
+if st.button("Calculate"):
+    humidity, temperature = predict_requirements(crop_name)
+    pest_warning = predict_pest_warnings(crop_name)
+    if humidity is not None and temperature is not None:
+        st.info(f"Humidity Required: {humidity}%")
+        st.info(f"Temperature Required: {temperature:.2f}°F")
     else:
-        st.error(translate_text("No data found for the specified crop.", selected_language))
-    pest_warnings = predict_pest_warnings(crop_name)
-    st.write(pest_warnings)
+        st.warning("Crop not found.")
+    st.info(f"Pest Warnings: {pest_warning}")
 
-# Price Prediction
-st.header(translate_text("Predict Crop Prices", selected_language))
-state = st.text_input(translate_text("State", selected_language))
-district = st.text_input(translate_text("District", selected_language))
-market = st.text_input(translate_text("Market", selected_language))
-commodity = st.text_input(translate_text("Commodity", selected_language))
-variety = st.text_input(translate_text("Variety", selected_language))
+# Crop Price Prediction
+st.header("Predict Crop Prices")
+state = st.text_input("State")
+district = st.text_input("District")
+market = st.text_input("Market")
+commodity = st.text_input("Commodity")
+variety = st.text_input("Variety")
+arrival_date = st.date_input("Arrival Date")
 
-if st.button(translate_text("Predict Price", selected_language)):
-    price_features = np.array([[state, district, market, commodity, variety]])
-    price_features_encoded = price_encoder.transform(price_features)
-    min_price, max_price, modal_price = price_model.predict(price_features_encoded).flatten()
-    st.success(translate_text("Min Price: ₹{:.2f}", selected_language).format(min_price))
-    st.success(translate_text("Max Price: ₹{:.2f}", selected_language).format(max_price))
-    st.success(translate_text("Modal Price: ₹{:.2f}", selected_language).format(modal_price))
+if st.button("Predict Prices"):
+    if not all([state, district, market, commodity, variety, arrival_date]):
+        st.error("Please provide all inputs.")
+    else:
+        input_data = {
+            'state': state,
+            'district': district,
+            'market': market,
+            'commodity': commodity,
+            'variety': variety,
+            'arrival_date': pd.to_datetime(arrival_date)
+        }
+
+        input_df = pd.DataFrame([input_data])
+        input_df['day'] = input_df['arrival_date'].dt.day
+        input_df['month'] = input_df['arrival_date'].dt.month
+        input_df['year'] = input_df['arrival_date'].dt.year
+        input_df.drop(['arrival_date'], axis=1, inplace=True)
+        input_encoded = price_encoder.transform(input_df)
+
+        predicted_prices = price_model.predict(input_encoded)
+        min_price, max_price, modal_price = predicted_prices[0]
+        st.success(f"Predicted Prices - Min: {min_price}, Max: {max_price}, Modal: {modal_price}")
